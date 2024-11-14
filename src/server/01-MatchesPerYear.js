@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Send output path
-const matchesPerYearJsonPath = path.join(process.cwd(), '/public/output/01-matches-per-year.json')
+const matchesPerYearJsonPath = path.join(process.cwd(), '/public/output/01-MatchesPerYear.json')
 // Define output making function using "input JSON"
 function countMatchesPerYear(jsonObject) {
     const result = {};
