@@ -1,26 +1,40 @@
-import Papa from 'papaparse';
 import fs from 'fs';
+import path from 'path';
 
-const matchesCsv = "../data/matches.csv";
-
-function countMatchesPerYear(csvFile) {
-    const csvFileContents = fs.readFileSync(csvFile, 'utf8');
-    Papa.parse(csvFileContents, {
-        header: true,
-        complete: function (results) {
-            const matches = results.data;
-            const matchCountByYear = {};
-            matches.forEach(match => {
-                const season = match.season;
-                if (season) {
-                    matchCountByYear[season] = (matchCountByYear[season] || 0) + 1;
-                }
-            });
-            console.log(matchCountByYear);
-        },
-        error: function (err) {
-            console.error("Error parsing csv:", error);
+// Send output path
+const matchesPerYearJsonPath = path.join(process.cwd(), '/public/output/01-matches-per-year.json')
+// Define output making function using "input JSON"
+function countMatchesPerYear(jsonObject) {
+    const result = {};
+    // Valid check
+    if (typeof jsonObject !== 'object') {
+        console.error("Error - not an object");
+        return;
+    }
+    // Find result
+    jsonObject.forEach((match) => {
+        if (match.season) {
+            result[match.season] = (result[match.season] || 0) + 1;
         }
     });
+    // Log result
+    console.log("Matches per year:", result);
+    fs.writeFileSync(matchesPerYearJsonPath, JSON.stringify(result, null, 2), 'utf-8');
 }
-countMatchesPerYear(matchesCsv);
+
+
+
+// Main program using "input json"
+const matchesJsonPath = path.join(process.cwd(), '/src/data/matches.json');
+fs.readFile(matchesJsonPath, 'utf8', (err, data) => {
+    if (err) {
+        console.error(err);
+        return;
+    }
+    try {
+        const matchesJson = JSON.parse(data);
+        countMatchesPerYear(matchesJson);
+    } catch (parsingError) {
+        console.error("Error during parsing -", parsingError);
+    }
+});

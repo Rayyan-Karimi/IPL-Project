@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Rayyan-Karimi/IPL-Project#readme",
   "dependencies": {
+    "csvtojson": "^2.0.10",
     "papaparse": "^5.4.1"
   }
 }
