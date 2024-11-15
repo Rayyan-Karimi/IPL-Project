@@ -4,40 +4,64 @@
 import fs from 'fs';
 import path from 'path';
 
-const deliveriesJsonPath = path.join(process.cwd(), '/src/data/deliveries.json');
-// Read JSON and call task-function
-fs.readFile(deliveriesJsonPath, 'utf8', (err, data) => {
-    if (err) {
-        console.error("Input JSON error", err);
+const pathOfDeliveriesJsonFile = path.join(process.cwd(), '/src/data/deliveries.json');
+const pathOfMatchesJsonFile = path.join(process.cwd(), '/src/data/matches.json');
+
+// Read both JSONs and call task-function
+fs.readFile(pathOfDeliveriesJsonFile, 'utf8', (deliveriesErr, deliveriesData) => {
+    if (deliveriesErr) {
+        console.error("Deliveries input JSON error", deliveriesErr);
         return;
     } else {
         try {
-            const deliveriesJson = JSON.parse(data);
-            extraRunsByEachTeamIn2016(deliveriesJson);
-        } catch (err) {
-            console.error("Output parsing error", err);
+            const deliveriesJson = JSON.parse(deliveriesData);
+            fs.readFile(pathOfMatchesJsonFile, 'utf8', (matchErr, matchData) => {
+                if (matchErr) {
+                    console.error("Matches input JSON error", matchErr);
+                    return;
+                } else {
+                    try {
+                        const matchesJson = JSON.parse(matchData);
+                        try {
+                            extraRunsByEachTeamIn2016(matchesJson, deliveriesJson);
+                        } catch (err) {
+                            console.error("Output parsing error", err);
+                            return;
+                        }
+                    } catch (matchParseError) {
+                        console.error("Error parsing matches JSON", matchParseError);
+                        return;
+                    }
+                }
+            })
+        } catch (deliveryParseError) {
+            console.error("Error parsing deliveries JSON", deliveryParseError);
+            return;
         }
     }
 });
 
 // Main task function
-const extraRunsByEachTeamIn2016JsonPath = path.join(process.cwd(), '/public/output/03-2016ExtraRunsPerteam.json')
-function extraRunsByEachTeamIn2016(jsonObject) {
-    /* @TODO: add matches and deliveries. map by match ID from matches, if match.season == 2016 then 
-     * use the ID to find extra runs and team name, and map them.
-     */
-    const result = {};
-    jsonObject.forEach(delivery => {
-        if (delivery.bowling_team && delivery.extra_runs) {
-            const season = delivery.season;
-            const manOfMatch = delivery.player_of_match;
-            if (!result[season]) {
-                result[season] = {};
-            }
-            result[season][manOfMatch] = (result[season][manOfMatch] || 0) + 1;
+const jsonPathOfExtraRunsByEachTeamIn2016 = path.join(process.cwd(), '/public/output/03-2016ExtraRunsPerteam.json')
+function extraRunsByEachTeamIn2016(matchesJson, deliveriesJson) {
+    const arrayOfMatchIdsOf2016 = [];
+    const objectOfExtraRunsByEachTeamIn2016 = {};
+    matchesJson.forEach(match => {
+        if (match.season === '2016') {
+            arrayOfMatchIdsOf2016.push(match.id);
         }
     });
+    // console.log(arrayOfMatchIdsOf2016);
 
-    console.log("The extra runs conceded by each team in 2016 is:", result);
-    fs.writeFileSync(extraRunsByEachTeamIn2016JsonPath, JSON.stringify(result, null, 2), 'utf-8');
+    deliveriesJson.forEach(delivery => {
+        const deliveryMatchId = delivery.match_id;
+        if (arrayOfMatchIdsOf2016.includes(deliveryMatchId)) {
+            const team = delivery.bowling_team;
+            const extraRuns = delivery.extra_runs;
+            // console.log("Typeof Team:", typeof team, "type of extra runs:", typeof extraRuns);
+            objectOfExtraRunsByEachTeamIn2016[team] = (Number.parseInt(objectOfExtraRunsByEachTeamIn2016[team]) || 0) + Number.parseInt(extraRuns);
+        }
+    });
+    console.log("The extra runs conceded by each team in 2016 is:", objectOfExtraRunsByEachTeamIn2016);
+    fs.writeFileSync(jsonPathOfExtraRunsByEachTeamIn2016, JSON.stringify(objectOfExtraRunsByEachTeamIn2016, null, 2), 'utf-8');
 }
