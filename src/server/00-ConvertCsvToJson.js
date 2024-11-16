@@ -7,11 +7,11 @@ const matchesJsonFilePath = path.join(process.cwd(), '/src/data/matches.json');
 const deliveriesCsvFilePath = path.join(process.cwd(), '/src/data/deliveries.csv');
 const deliveriesJsonFilePath = path.join(process.cwd(), '/src/data/deliveries.json');
 
-const convertCsvToJson = async () => {
+export const convertCsvToJson = async () => {
     try {
         const jsonArray = await csv().fromFile(matchesCsvFilePath);
         fs.writeFileSync(matchesJsonFilePath, JSON.stringify(jsonArray, null, 2), 'utf-8');
-        console.log('\nCSV to JSON conversion successful, file path:', matchesJsonFilePath);
+        console.log('CSV to JSON conversion successful, file path:', matchesJsonFilePath);
     } catch (error) {
         console.error('Error converting CSV to JSON:', error);
     }
@@ -23,4 +23,3 @@ const convertCsvToJson = async () => {
         console.error('Error converting CSV to JSON:', error);
     }
 };
-convertCsvToJson();

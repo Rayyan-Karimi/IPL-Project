@@ -4,24 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const pathOfDeliveriesJsonFile = path.join(process.cwd(), '/src/data/deliveries.json');
-const pathOfMatchesJsonFile = path.join(process.cwd(), '/src/data/matches.json');
-
-// Read both JSONs and call task-function
-fs.readFile(pathOfDeliveriesJsonFile, 'utf8', (deliveriesErr, deliveriesData) => {
-    if (deliveriesErr) return console.error("Deliveries input JSON error", deliveriesErr);
-    const deliveriesJson = JSON.parse(deliveriesData);
-    fs.readFile(pathOfMatchesJsonFile, 'utf8', (matchesErr, matchesData) => {
-        if (matchesErr) return console.error("Matches input JSON error", matchesErr);
-        const matchesJson = JSON.parse(matchesData);
-        findStrikeRatesOfEachManForEachSeason(matchesJson, deliveriesJson);
-    });
-});
-
-// Main task function
-const jsonPathOfStrikeRatesPerSeasonOfEachBatsman = path.join(process.cwd(), '/public/output/07-StrikeRatesOfEachManForEachSeason.json')
-function findStrikeRatesOfEachManForEachSeason(matchesJson, deliveriesJson) {
-
+export function findStrikeRatesOfEachManForEachSeason(matchesJson, deliveriesJson) {
     const batsmanStats = deliveriesJson.reduce((batsmanStatsAccumulator, delivery) => {
         const batsman = delivery.batsman;
         const season = matchesJson.filter(match => match.id === delivery.match_id)[0].season;
@@ -32,7 +15,6 @@ function findStrikeRatesOfEachManForEachSeason(matchesJson, deliveriesJson) {
         batsmanStatsAccumulator[batsman][season].ballsPlayed += 1;
         return batsmanStatsAccumulator;
     }, {});
-    // console.log(batsmanStats);
 
     const batsmanStrikeRatesPerSeason = {};
     for (const batsman in batsmanStats) {
@@ -43,6 +25,7 @@ function findStrikeRatesOfEachManForEachSeason(matchesJson, deliveriesJson) {
             batsmanStrikeRatesPerSeason[batsman] = { 'Season': season, StrikeRate: strikeRate.toFixed(2) };
         }
     }
-    // console.log(batsmanStrikeRatesPerSeason);
+    const jsonPathOfStrikeRatesPerSeasonOfEachBatsman = path.join(process.cwd(), '/public/output/07-StrikeRatesOfEachManForEachSeason.json')
     fs.writeFileSync(jsonPathOfStrikeRatesPerSeasonOfEachBatsman, JSON.stringify(batsmanStrikeRatesPerSeason, null, 2), 'utf-8');
+    console.log("Q7. Json generated.")
 }

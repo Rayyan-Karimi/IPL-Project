@@ -4,25 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const matchesJsonPath = path.join(process.cwd(), '/src/data/matches.json');
-// Read JSON and call task-function
-fs.readFile(matchesJsonPath, 'utf8', (err, data) => {
-    if (err) {
-        console.error("Input JSON error", err);
-        return;
-    } else {
-        try {
-            const matchesJson = JSON.parse(data);
-            seasonWiseHighestMOM(matchesJson);
-        } catch (err) {
-            console.error("Output parsing error", err);
-        }
-    }
-});
-
-// Main task function
-const seasonWiseHighestMOMJsonPath = path.join(process.cwd(), '/public/output/06-SeasonWiseHighestMOM.json')
-function seasonWiseHighestMOM(jsonObject) {
+export function seasonWiseHighestMOM(jsonObject) {
     const seasonWiseMOMCount = {};
     jsonObject.forEach(match => {
         if (match.result && match.result === 'normal' && match.season && match.player_of_match) {
@@ -51,6 +33,7 @@ function seasonWiseHighestMOM(jsonObject) {
             awards: highestMOMCount
         }
     }
-    console.log("Each team's toss won + matches won count is:", resultObject);
+    const seasonWiseHighestMOMJsonPath = path.join(process.cwd(), '/public/output/06-SeasonWiseHighestMOM.json')
     fs.writeFileSync(seasonWiseHighestMOMJsonPath, JSON.stringify(resultObject, null, 2), 'utf-8');
+    console.log("Q6. Json generated.");
 }
